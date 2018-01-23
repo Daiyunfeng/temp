@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/mvc
+	http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd 
+	http://www.springframework.org/schema/task       
+    http://www.springframework.org/schema/task/spring-task-4.0.xsd"
+	default-lazy-init="true">
+	<!-- 注解扫描包 -->
+	<context:component-scan base-package="pers.hjc">
+		<!-- 将Service注解给去掉 -->
+		<context:include-filter
+			type="annotation"
+			expression="org.springframework.stereotype.Controller" />
+		<context:exclude-filter
+			type="annotation"
+			expression="org.springframework.stereotype.Service" />
+	</context:component-scan>
+	<!-- 自动注册DefaultAnnotationHandlerMapping与AnnotationMethodHandlerAdapter,可以自己手动注册这两个 -->
+	<mvc:annotation-driven>
+		<!-- 替代AnnotationMethodHandlerAdapter -->
+		<mvc:message-converters>
+			<bean class="org.springframework.http.converter.StringHttpMessageConverter">
+				<property name="supportedMediaTypes">
+					<list>
+						<value>text/plain;charset=UTF-8</value>
+					</list>
+				</property>
+			</bean>
+			<!-- 自动转换json -->
+			<bean
+				class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+				<property name="supportedMediaTypes">
+					<list>
+						<value>text/plain;charset=UTF-8</value>
+					</list>
+				</property>
+			</bean>
+		</mvc:message-converters>
+	</mvc:annotation-driven>
+
+	<!-- 替代DefaultAnnotationHandlerMapping -->
+	<!-- 拦截所有的请求 -->
+	<mvc:interceptors>
+		<bean class="pers.hjc.interceptors.AuthInterceptor" />
+	</mvc:interceptors>
+
+	<!-- 静态资源(js/image)的访问 -->
+	<mvc:resources mapping="/res/**" location="/res/" />  
+	<!-- 定义视图解析器 InternalResourceViewResolver：用于支持Servlet、JSP视图解析 -->
+	<bean
+		id="viewResolver"
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property
+			name="viewClass"
+			value="org.springframework.web.servlet.view.JstlView" />
+		<property
+			name="contentType"
+			value="text/html; charset=UTF-8" />
+		<property
+			name="prefix"
+			value="/WEB-INF/jsp/"></property>
+		<property
+			name="suffix"
+			value=".jsp"></property>
+	</bean>
+	<bean
+		id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property
+			name="defaultEncoding"
+			value="UTF-8" />
+		<!-- 上传文件大小限制为50M，50*1024*1024 -->
+		<property
+			name="maxUploadSize"
+			value="52428800" />
+	</bean>
+</beans>

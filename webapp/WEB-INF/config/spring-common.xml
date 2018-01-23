@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+						http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/context
+						http://www.springframework.org/schema/context/spring-context-4.0.xsd
+						http://www.springframework.org/schema/tx 
+    					http://www.springframework.org/schema/tx/spring-tx-4.0.xsd"
+	xmlns:context="http://www.springframework.org/schema/context">
+
+	<!-- 代替简化配置PropertyPlaceholderConfigurer -->
+	<context:property-placeholder
+		location="/WEB-INF/config/jdbc.properties"
+		ignore-unresolvable="true" />
+
+	<bean
+		id="dataSource"
+		class="com.alibaba.druid.pool.DruidDataSource">
+		<property
+			name="username"
+			value="${jdbc.username}" />
+		<property
+			name="password"
+			value="${jdbc.password}" />
+		<property
+			name="url"
+			value="${jdbc.url}" />
+		<property
+			name="driverClassName"
+			value="${jdbc.driverClass}" />
+		<property
+			name="defaultCatalog"
+			value="${hibernate.default_catalog}" />
+
+		<property
+			name="initialSize"
+			value="${jdbc.initialSize}" />
+		<property
+			name="minIdle"
+			value="${jdbc.minIdle}" />
+		<property
+			name="maxActive"
+			value="${jdbc.maxActive}" />
+
+		<property
+			name="maxWait"
+			value="${jdbc.maxWait}" />
+		<!-- 是否自动回收超时连接 -->
+		<property
+			name="removeAbandoned"
+			value="true" />
+		<property
+			name="removeAbandonedTimeout"
+			value="1800" />
+
+		<property
+			name="timeBetweenEvictionRunsMillis"
+			value="30000" />
+
+		<property
+			name="minEvictableIdleTimeMillis"
+			value="60000" />
+		<!-- 开启Druid的监控统计功能 -->
+		<property
+			name="validationQuery"
+			value="SELECT 'x'" />
+
+		<property
+			name="testWhileIdle"
+			value="true" />
+		<property
+			name="testOnBorrow"
+			value="false" />
+		<property
+			name="testOnReturn"
+			value="false" />
+		<property
+			name="poolPreparedStatements"
+			value="true" />
+		<property
+			name="maxPoolPreparedStatementPerConnectionSize"
+			value="50" />
+
+		<property
+			name="filters"
+			value="stat" />
+	</bean>
+
+	<bean
+		id="sessionFactory"
+		class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<property
+			name="dataSource"
+			ref="dataSource" />
+		<!-- 不适用hibernate的xml -->
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">${hibernate.dialect}</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+				<prop key="hibernate.show_sql">false</prop>
+				<prop key="hibernate.format_sql">false</prop>
+				<prop key="hibernate.connection.release_mode">after_transaction</prop>
+			</props>
+		</property>
+		<!-- 自动扫描 不适用映射文件 -->
+		<property name="packagesToScan">
+			<list>
+				<value>pers.hjc.model</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean
+		id="transactionManager"
+		class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+		<property
+			name="sessionFactory"
+			ref="sessionFactory" />
+	</bean>
+
+	<context:component-scan base-package="pers.hjc">
+		<!--将Controller的注解排除掉 -->
+		<context:exclude-filter
+			type="annotation"
+			expression="org.springframework.stereotype.Controller" />
+	</context:component-scan>
+
+	<!-- 启用事务注解 -->
+	<tx:annotation-driven transaction-manager="transactionManager" />
+</beans>
